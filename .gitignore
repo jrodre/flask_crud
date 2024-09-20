@@ -2,3 +2,4 @@ dist/
 local/
 venv/
 flask_crud.egg-info/
+flaski.egg-info/

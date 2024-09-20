@@ -5,6 +5,7 @@ setup(
     version='0.0.0.2',
     packages=['flask_crud'],
     # packages=find_packages(),
+    include_package_data=True,  # Incluye archivos de templates y estáticos
     description='Administra vistas con un enfoque diferente en flask.',
     long_description=open('README.md', encoding="utf-8").read(),
     long_description_content_type='text/markdown',
