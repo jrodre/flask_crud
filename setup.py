@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='flaski',
-    version='0.0.0.3',
+    version='0.0.0.4',
     packages=['flask_crud'],
     # packages=find_packages(),
     include_package_data=True,  # Incluye archivos de templates y estáticos
