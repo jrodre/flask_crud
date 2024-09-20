@@ -12,7 +12,7 @@
 Primero, clona este repositorio en tu máquina local:
 
 ```bash
-git clone https://github.com/tu_usuario/flask_crud.git
+git clone https://github.com/jrodre/flask_crud.git
 cd flask_crud
 ```
 Asegúrate de tener las dependencias necesarias instaladas:
