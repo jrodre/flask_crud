@@ -1,2 +1,4 @@
 dist/
 local/
+venv/
+flask_crud.egg-info/
