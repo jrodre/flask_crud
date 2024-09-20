@@ -10,8 +10,8 @@ setup(
     # long_description=open('README.md').read(),
     author='Tu nombre',
     author_email='jodriz@example.com',
-    url='del repositorio de tu proyecto',
+    url='https://github.com/jrodre/flask_crud.git',
     install_requires=[
-    "Aquí van las dependencias de tu proyecto"
+    "Flask"
     ],
 )
