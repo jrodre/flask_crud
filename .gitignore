@@ -2,5 +2,6 @@ build/
 dist/
 local/
 venv/
+__pycache__/
 flask_crud.egg-info/
 flaski.egg-info/

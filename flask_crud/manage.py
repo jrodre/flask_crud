@@ -67,6 +67,8 @@ class CrudRegistrable:
     auto_view = True
     # Se almacenan nombres de columnas que el formulario debe marcar con "required"
     requireds = []
+    # Se almacenan nombres de columnas que el formulario debe marcar con "disabled"
+    disableds = []
     # Se almacenan los valores a mostrar en el combobox del form
     enums = {}    
     enumsmuliple = []    
@@ -86,6 +88,29 @@ class CrudRegistrable:
         if CrudRegistrable.auto_view:
             # Se implementan métodos para form 
             CrudEntityStore.registerViewFromEntity(cls)       
+
+    @classmethod
+    def allRequireds(cls, excludeFields=None):
+        cls.requireds = []
+        if excludeFields is None:
+            excludeFields=[]
+        for field in cls._sample_registrable_model():
+            if field in excludeFields:
+                continue
+            cls.requireds.append(field)
+        return cls.requireds
+
+    @classmethod
+    def allDisableds(cls, excludeFields=None):
+        cls.disableds = []
+        if excludeFields is None:
+            excludeFields=[]
+        for field in cls._sample_registrable_model():
+            if field in excludeFields:
+                continue
+            cls.disableds.append(field)
+        return cls.disableds
+
 
 class RenderDataHandler:
 
@@ -152,6 +177,10 @@ class CrudEntityStore:
             return current_entity
         raise EntityNotFoundError(entity_name=entity_name)
 
+    @staticmethod
+    def getViews():
+        return CrudEntityStore.__views
+    
     @staticmethod
     def getView(entity_name=None):
         if not entity_name and not CrudEntityStore.current_entity_name:

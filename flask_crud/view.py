@@ -62,6 +62,16 @@ class Btn:
         if self.isSimple:
             Btn["isSimple"] = True
         return Btn
+    
+    def copyName(self, newText):
+        return Btn(
+        name_action = newText,
+        endpoint_name=self.endpoint_name,
+        htmlclass=self.htmlclass,
+        isSubmit=self.isSubmit,
+        isSimple=self.isSimple,
+        )
+
 
 
 def as_natural_words_list(row: dict[str]):
@@ -80,10 +90,15 @@ class BuildViewError(Exception):
 
 # def build_inputs(model:CrudEntityModel, id, requireds, enums):
 def build_inputs(
-    sample: dict[str], data: dict[str] = None, requireds=[], enums={}, enumsmuliple=[]
+    sample: dict[str], data: dict[str] = None, requireds=[], disableds=[], enums={}, enumsmuliple=[]
 ):
     require_sample = not data
-    date_pattern = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+    # date_pattern = "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+    date_pattern = r'(\d{4}-\d{2}-\d{2})|(\d{2}/\d{2}/\d{4})'
+    time_patern = r'([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?'
+    datetime_pattern = r'(\d{4}-\d{2}-\d{2} [01]\d:[0-5]\d(:[0-5]\d)?)|(\d{2}/\d{2}/\d{4} [01]\d:[0-5]\d(:[0-5]\d)?)'
+    telf_pattern = "[0-9]{10}"
+    email_pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'    
     int_pattern = "[-]{0,1}[0-9]+"
     float_pattern = r"[-]{0,1}[0-9]+\.[0-9]+"
     print("---------- build_inputs.sample")
@@ -106,6 +121,7 @@ def build_inputs(
         label_form[k] = inp["label"]
         inp["name"] = k
         inp["required"] = k in requireds
+        inp["disabled"] = k in disableds
         inp["multiple"] = k in enumsmuliple
         if k in enums:
             inp["type"] = "select"
@@ -115,10 +131,41 @@ def build_inputs(
                 inp["disable"] = data[k]
             else:
                 inp["disable"] = sample[k]
+        elif "\n" in v:
+            inp["type"] = "textarea"
+            if require_sample:
+                v = ""    
+            else:
+                v = data.get(k)
         elif re.fullmatch(date_pattern, v):
             inp["type"] = "date"
             if require_sample:
-                v = "aaaa-mm-dd"
+                v = "aaaa-mm-dd"    
+            else:
+                v = data.get(k)
+        elif re.fullmatch(time_patern, v):
+            inp["type"] = "time"
+            if require_sample:
+                v = "HH:MM:ss"    
+            else:
+                v = data.get(k)
+        elif re.fullmatch(datetime_pattern, v):
+            inp["type"] = "datetime-local"
+            if require_sample:
+                v = "aaaa-mm-dd HH:MM:ss"    
+            else:
+                v = data.get(k)
+        elif re.fullmatch(telf_pattern, v):
+            inp["type"] = "tel"
+            inp["pattern"] = telf_pattern
+            if require_sample:
+                v = ""
+            else:
+                v = data.get(k)
+        elif re.fullmatch(email_pattern, v):
+            inp["type"] = "email"            
+            if require_sample:
+                v = ""
             else:
                 v = data.get(k)
         elif re.fullmatch(int_pattern, v):
@@ -174,6 +221,7 @@ class FormView:
         entity_name,
         sample,
         colrequireds: list[str],
+        coldisableds: list[str],
         enums: dict[str, list[str]],
         text_submit="Enviar",
         text_cancel="Cancelar",
@@ -194,14 +242,23 @@ class FormView:
         self.enumsmuliple = enumsmuliple
         self.sample = sample
         self.requireds = colrequireds
+        self.disableds = coldisableds
         self.enums = enums
         self.title = title
         self.text_submit = text_submit
         self.text_cacel = text_cancel
-        self.btns = btns
+        self.btns:dict[str, Btn] = btns
         self.endpoint_name = None
-        self.main_btn = None
-        self.cancel_btn = None
+        self.main_btn =  Btn(
+                self.text_submit,
+                isSubmit=True,
+                htmlclass="btn btn-primary",
+            )
+        self.cancel_btn = Btn(
+                self.text_cacel,
+                htmlclass="btn btn-secondary",
+                endpoint_name=""
+            )
 
     def setEnpointName(self, endpoint_name):
         self.endpoint_name = endpoint_name
@@ -222,6 +279,11 @@ class FormView:
         if self.title is None:
             self.title = self.__defaultTitle()
         return self.title
+    
+    def quitBtns(self):
+        self.main_btn = None
+        self.cancel_btn = None
+        self.btns = {}        
 
     def anyEqual(self, form_dict):
         print(f"------- DATOS POR COMPARAR: dataform={FormView.vals_default_forms}")
@@ -260,19 +322,9 @@ class FormView:
         print("--- FormView: SAMPLE:")
         print(self.sample)
         FormView.vals_default_forms, inps, FormView.lbl_form = build_inputs(
-            self.sample, viewdata, self.requireds, self.enums, self.enumsmuliple
+            self.sample, viewdata, self.requireds, self.disableds, self.enums, self.enumsmuliple
         )
-        if not self.main_btn:
-            self.main_btn = Btn(
-                self.text_submit,
-                isSubmit=True,
-                htmlclass="btn btn-primary",
-            )
-        if not self.cancel_btn:
-            self.cancel_btn = Btn(
-                self.text_cacel,
-                htmlclass="btn btn-secondary",
-            )
+
         btns = []
         if self.btns:
             for kbtn in self.btns:
@@ -283,10 +335,11 @@ class FormView:
         print("---- FORM SELF BTNS ------")
         print(self.btns)
         form_data = {
+            "title":self.title,
             "inputs": inps,
             "entity_name": self.entity_name,
-            "main_btn": self.main_btn.toMetaData(),
-            "cancel_btn": self.cancel_btn.toMetaData(),
+            "main_btn": self.main_btn.toMetaData() if self.main_btn else None,
+            "cancel_btn": self.cancel_btn.toMetaData() if self.cancel_btn else None,
             "btns": btns,
             "data": data,
         }
@@ -322,7 +375,6 @@ class UnvalidateValueException(Exception):
             f"Valor necesario ausente en {key}='{value}', puede que {key} no se esté validando en el envío del formulario."
         )
 
-
 class TableView:
     # def __init__(self, head_names, title=None, opts=[], data = None, model:CrudEntityModel=None):
     def __init__(
@@ -356,11 +408,12 @@ class TableView:
         if not data and not sample:
             raise BuildViewError("Se requiere al menos el data o sample.")
         if not data:
-            aux_data = {}
-            for key in sample:
-                aux_data[key] = ""
-            data = [aux_data]
-        if not (isinstance(data, list) and isinstance(data[0], dict)):
+            # aux_data = {}
+            # for key in sample:
+            #     aux_data[key] = ""
+            # data = [aux_data]
+            data = []
+        if data and not (isinstance(data, list) and isinstance(data[0], dict)):
             raise BuildViewError(
                 "Table view requires that 'data' argument with type list[dict[str]]."
             )
@@ -459,6 +512,7 @@ class ViewFactory:
         return FormView(
             sample=sample,
             colrequireds=entity_class.requireds,
+            coldisableds=entity_class.disableds,
             enums=entity_class.enums,
             entity_name=entity_class.entity_name,
             enumsmuliple=entity_class.enumsmuliple,
