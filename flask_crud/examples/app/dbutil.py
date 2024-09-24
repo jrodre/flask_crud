@@ -69,11 +69,12 @@ class DBController:
             cursor.close()
 
     @staticmethod
-    def update(query, args: tuple):
+    def execute(query, args: tuple):
         try:
             mysql = DBController.checkMySQL()
             cursor = mysql.connection.cursor()
             result = cursor.execute(query, args)
+            result = mysql.connection.commit()
             return result
         except Exception as e:
             msg = f"Error durante actualización de datos: {str(e)}"
@@ -82,11 +83,59 @@ class DBController:
             cursor.close()
 
     @staticmethod
+    def insert(table_name, form):
+        try:                
+            colnames = [field for field in form]
+            marks = "%s," * len(form)
+            marks = marks.rstrip(",")  # Elimina la última coma
+            values = [str(form[field]) for field in form]
+            query = "INSERT INTO {0}({1}) VALUES ({2})".format(table_name, ",".join(colnames), marks)
+            # return query
+            DBController.execute(query, tuple(values))
+        except Exception as e:
+            raise Exception(e)
+        
+    @staticmethod
+    def update(table_name, where, vals, form):
+        try:                
+            assings = [field+"=%s" for field in form]
+            values = [str(form[field]) for field in form]
+            query = "UPDATE {0} SET {1} WHERE {2}".format(table_name, ",".join(assings), where)
+            values = *tuple(values), *vals
+            # return query+": "+str(values)
+            # return query
+            DBController.execute(query, tuple(values))
+        except Exception as e:
+            raise Exception(e)
+        
+    @staticmethod
+    def insertUpdateOne(table_name, name_field, form):
+        try:                
+            try:                
+                DBController.insert(table_name=table_name, form=form)
+            except Exception:
+                DBController.updateOne(table_name=table_name, name_field=name_field, form=form)                
+        except Exception as ex:
+            raise Exception(ex)
+
+    @staticmethod
+    def updateOne(table_name, name_field, form):
+        try:                
+            assings = [field+"=%s" for field in form]
+            values = [str(form[field]) for field in form]
+            query = "UPDATE {0} SET {1} WHERE {2}=%s ".format(table_name, ",".join(assings), name_field)
+            values = *tuple(values), form[name_field]
+            DBController.execute(query, tuple(values))
+        except Exception as e:
+            raise Exception(e)
+
+    @staticmethod
     def delete(query, args: tuple):
         try:
             mysql = DBController.checkMySQL()
             cursor = mysql.connection.cursor()
             result = cursor.execute(query, args)
+            result = mysql.connection.commit()
             return result
         except Exception as e:
             msg = f"Error al eliminar los datos: {str(e)}"

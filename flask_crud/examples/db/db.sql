@@ -28,14 +28,32 @@ CREATE TABLE clientes(
     estado VARCHAR(30)
 );
 
-CREATE TABLE ventas(
+-- SELECCIONAR NO COMPRADOS
+SELECT vh.* 
+FROM vehiculo vh
+LEFT JOIN ventas vt ON vh.id = vt.id_vehiculo
+WHERE vt.id_vehiculo IS NULL;
+
+SELECT 
+    vh.marca, 
+    vh.modelo, 
+    vh.color, 
+    vh.precio_de_venta, 
+    COUNT(vh.id) AS cantidad_disponible
+FROM vehiculo vh
+LEFT JOIN ventas vt ON vh.id = vt.id_vehiculo
+WHERE vt.id_vehiculo IS NULL
+GROUP BY vh.marca, vh.modelo, vh.color, vh.precio_de_venta;
+
+CREATE TABLE ventas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_cliente INT NOT NULL,
     id_vehiculo INT NOT NULL,
-    fecha_venta TIMESTAMP DEFAULT NOW,
-    CONSTRAINT fk_vehiculo FOREIGN KEY REFERENCES vehiculo(id),
-    CONSTRAINT fk_cliente FOREIGN KEY REFERENCES cliente(id)
+    fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_vehiculo FOREIGN KEY (id_vehiculo) REFERENCES vehiculo(id),
+    CONSTRAINT fk_cliente FOREIGN KEY (id_cliente) REFERENCES clientes(id)
 );
+
 
 CREATE TABLE mantenimiento(
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -93,9 +111,3 @@ JOIN vehiculos vh ON rv.id_vehiculo = vh.id
 AND vh.matricula='MAS-761'
 ORDER BY rv.fecha_hora_recepcion, rv.fecha_hora_entrega;
 
-
-SELECT producto, SUM(cantidad) AS total_vendido
-FROM ventas
-GROUP BY producto
-ORDER BY total_vendido DESC;
---ORDER BY total_vendido ASC;
