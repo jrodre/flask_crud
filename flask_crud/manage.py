@@ -111,6 +111,9 @@ class CrudRegistrable:
             cls.disableds.append(field)
         return cls.disableds
 
+    @staticmethod
+    def posRenderView(view):
+        pass
 
 class RenderDataHandler:
 
@@ -169,6 +172,8 @@ class CrudEntityStore:
     def getEntity(entity_name=None):
         if not entity_name and not CrudEntityStore.current_entity_name:
             raise IlegalArgumentOnEntityStore(name="entity_name", value=entity_name)
+        if isinstance(entity_name, CrudRegistrable):
+            entity_name = entity_name.entity_name
         if not entity_name:
             entity_name = CrudEntityStore.current_entity_name
         current_entity = CrudEntityStore.__entities.get(entity_name)
@@ -183,6 +188,8 @@ class CrudEntityStore:
     
     @staticmethod
     def getView(entity_name=None):
+        if isinstance(entity_name, CrudRegistrable):
+            entity_name = entity_name.entity_name
         if not entity_name and not CrudEntityStore.current_entity_name:
             raise IlegalArgumentOnEntityStore(name="entity_name", value=entity_name)
         if entity_name is None:
@@ -192,6 +199,12 @@ class CrudEntityStore:
             CrudEntityStore.current_entity_name = entity_name
             return current_entity_view
         raise ViewNotFoundError(entity_name=entity_name)
+    
+    @staticmethod
+    def executePosRenderViews():
+        for entity_name, view in CrudEntityStore.getViews().items():
+            entity = CrudEntityStore.getEntity(entity_name)
+            entity.posRenderView(view)
 
     @staticmethod
     def check():

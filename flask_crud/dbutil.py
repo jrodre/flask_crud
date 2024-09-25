@@ -1,3 +1,72 @@
+class DBMapperException(Exception):
+    def __init__(self,*args):
+        super().__init__(*args)
+    
+class DBMapper:
+    """
+    Registra operaciones(se espera que sean de base de datos) asociadas a una clave   
+    Ejemplo de uso:
+    .. code-block:: python
+        from flask import flash
+        from flask_crud.dbutil import DBController, DBMapper
+
+        class AddOrUpdateVehiculo(DBMapper):
+        dbmapper_name = "add-or-update-vehiculo"
+
+        @staticmethod
+        def operation(form):
+            try:
+                DBController.insertUpdateOne("vehiculo", "matricula", form)
+                flash("Vehiculo registrado con éxito", "success")
+            except Exception as e:
+                flash(str(e), "warning")
+    """
+    _db_mappers = {}
+    dbmapper_name = None
+
+    @staticmethod
+    def get(key_dbmapper, form:dict) -> list[dict[str]]:
+        dbmapper = DBMapper._db_mappers.get(key_dbmapper)
+        if dbmapper:
+            return dbmapper(form)
+        raise DBMapperException(f"No existe dbmapper con clave '{key_dbmapper}'")
+    
+    @staticmethod
+    def getSimple(key_dbmapper) -> list[dict[str]]:
+        dbmapper = DBMapper._db_mappers.get(key_dbmapper)
+        if dbmapper:
+            return dbmapper(None)
+        raise DBMapperException(f"No existe dbmapper con clave '{key_dbmapper}'")
+    
+    @staticmethod
+    def exec(key_dbmapper, form:dict):
+        # print("DDDDDDDDDDDDDDDDDDDD BBBBBBBBBBBBBBBBB DBMapper.__db_mappers")
+        # print(DBMapper._db_mappers)
+        dbmapper = DBMapper._db_mappers.get(key_dbmapper)
+        print(dbmapper)
+        if dbmapper is None:
+            raise DBMapperException(f"No existe dbmapper con clave '{key_dbmapper}'")
+        if "function" not in str(dbmapper):
+            raise DBMapperException(f"Valor de dbmmaper con clave '{key_dbmapper}'. El dbmapper debe ser una funcion o metodo")
+        dbmapper(form)
+    
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        # Registrar automáticamente la subclase al ser creada
+        cls.register()
+
+    @staticmethod
+    def operation(form):
+        pass
+
+    @classmethod
+    def register(cls):
+        if not cls.dbmapper_name:
+            raise DBMapperException(f"{cls.__name__}(DBMapper).dbmapper_name no puede tener valor '{cls.dbmapper_name}'")
+        if cls.dbmapper_name in DBMapper._db_mappers:
+            raise DBMapperException(f"{cls.__name__}(DBMapper).dbmapper_name = '{cls.dbmapper_name}' ya está registrado en dbmappers.")
+        # Registrar la subclase en la lista de rutas
+        DBMapper._db_mappers[cls.dbmapper_name] = cls.operation
 
 class DBController:
     mysql = None

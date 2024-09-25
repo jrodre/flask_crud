@@ -1,6 +1,6 @@
 import os
 
-class Config:
+class DBConfig:
     SECRET_KEY = os.urandom(24)
     MYSQL_HOST = 'localhost'
     MYSQL_PORT = 3306

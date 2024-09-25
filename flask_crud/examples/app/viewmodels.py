@@ -1,9 +1,17 @@
 from flask_crud.manage import CrudRegistrable
+from app.config.viewmodelconfig import cancel_btn, main_btn, delete_btn
+
+class ImplDefaultPosRenderView:
+    @staticmethod
+    def posRenderView(view):
+        view.form.main_btn = main_btn
+        view.form.cancel_btn = cancel_btn
+CrudRegistrable.posRenderView = ImplDefaultPosRenderView.posRenderView
 
 # START:INGRESO
 class IngresoVehiculoViewCfg(CrudRegistrable):
     id_name = "id"
-    entity_name = "IngresoVehiculoViewCfg"
+    entity_name = "view-registro-vehiculo"
     enums = {
         "tipo_vehiculo":[
             "PESADO",
@@ -88,6 +96,19 @@ class ClienteConsultaViewCfg(CrudRegistrable):
     def __init__(self, numero_de_cedula="1301347618") -> None:
         self.numero_de_cedula = numero_de_cedula
 
+    @staticmethod
+    def posRenderView(view):
+        view.form.main_btn = main_btn.copyName("Consultar")
+        view.form.cancel_btn = None
+
+class VehiculoConsultaViewCfg(CrudRegistrable):
+    id_name = "id"
+    entity_name = "VehiculoConsultaViewCfg"
+    requireds = ["matricula"]
+    # disableds = "numero_de_cedula,nombres,apellidos,dirección,ciudad,telefono".split(",")
+    def __init__(self, matricula="MAS-154") -> None:
+        self.matricula = matricula
+
 class MantenimientoEliminacionViewCfg(CrudRegistrable):
     id_name = "id"
     entity_name = "MantenimientoEliminacionViewCfg"
@@ -96,6 +117,11 @@ class MantenimientoEliminacionViewCfg(CrudRegistrable):
     def __init__(self, matrícula="1301347618", motivo="\n") -> None:
         self.matrícula = matrícula
         self.motivo = motivo
+
+    @staticmethod
+    def posRenderView(view):
+        view.form.main_btn = delete_btn.copyName("Dar de baja")
+        view.form.cancel_btn = cancel_btn.copyName("Volver")
 
 class RevisionViewCfg(CrudRegistrable):
     table_name = "revisiones"           # Nombre de la tabla en la base de datos

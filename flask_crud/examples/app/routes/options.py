@@ -1,46 +1,17 @@
-import json
-from app.dbutil import DBController
+from flask_crud.dbutil import DBMapper
+from app.routes.base import MenuBase
+from flask_crud.routeutil import Route
+from flask import Blueprint, request
+from flask_crud.manage import CrudEntityStore
+from flask_crud.view import ViewConfig
 from app.viewmodels import (
     ClienteConsultaViewCfg,
     MantenimientoEliminacionViewCfg,
-    IngresoVehiculoViewCfg,
+    # IngresoVehiculoViewCfg,
     IngresoClienteViewCfg,
     RevisionViewCfg,
     VehiculoCompradoViewCfg,
 )
-from app.routes.base import MenuBase, Route
-from flask import Blueprint, request, flash
-from flask_crud.manage import CrudEntityStore
-from flask_crud.view import ViewConfig, Btn
-
-main_btn = Btn(
-    "Guardar",
-    isSubmit=True,
-    # htmlclass="btn btn-primary",
-    htmlclass="btn btn-success",
-)
-delete_btn = Btn(
-    "Eliminar",
-    isSubmit=True,
-    # htmlclass="btn btn-primary",
-    htmlclass="btn btn-danger",
-)
-cancel_btn = Btn(
-    "Cancelar", htmlclass="btn btn-secondary", endpoint_name="index.dashboard"
-)
-
-for entity_name, view in CrudEntityStore.getViews().items():
-    if view and view.form:
-        if entity_name == ClienteConsultaViewCfg.entity_name:
-            view.form.main_btn = main_btn.copyName("Consultar")
-            view.form.cancel_btn = None
-            continue
-        if entity_name == MantenimientoEliminacionViewCfg.entity_name:
-            view.form.main_btn = delete_btn.copyName("Dar de baja")
-            view.form.cancel_btn = cancel_btn.copyName("Volver")
-            continue
-        view.form.main_btn = main_btn
-        view.form.cancel_btn = cancel_btn
 
 
 class IngresoRoute(Route):
@@ -50,81 +21,23 @@ class IngresoRoute(Route):
     @blueprint.route("/vehiculo", methods=["GET", "POST"])
     def vehiculo():
         if request.method == "POST":
-            try:
-                DBController.insertUpdateOne("vehiculo", "matricula", request.form)
-                flash("Vehiculo registrado con éxito", "success")
-            except Exception as e:
-                flash(str(e), "warning")
-        CrudEntityStore.getEntity(IngresoVehiculoViewCfg.entity_name)
-        vehiculoView: ViewConfig = CrudEntityStore.getView(
-            IngresoVehiculoViewCfg.entity_name
-        )
+            DBMapper.exec("add-or-update-vehiculo", request.form)
+        vehiculoView: ViewConfig = CrudEntityStore.getView("view-registro-vehiculo")
         return MenuBase.render(
             "macros/template_factory.html",
             main_title="Ingreso de vehículos",
             comps_data=[{"type": "form", "form_data": vehiculoView.form.toForm(None)}],
         )
-
+    
     @blueprint.route("/clientes", methods=["GET", "POST"])
     def cliente():
         if request.method == "POST":
             # Decodificar el campo 'selecteds'
-            selecteds = json.loads(request.form["selecteds"])
-            client = dict(request.form)
-            client.pop("selecteds")
-            client = client
-            DBController.insert("clientes", client)
-            for item in selecteds:
-                values = (
-                    item["color"],
-                    item["marca"],
-                    item["modelo"],
-                    item["precio_de_venta"],
-                    # cantidad a comprar
-                    item["quantity"],
-                )
-                # Seleccionar tantos ids como numero de vehiculos a comprar
-                ids = DBController.query(
-                    """
-                    SELECT id
-                    FROM vehiculo
-                    WHERE color = %s
-                    AND marca = %s
-                    AND modelo = %s
-                    AND precio_de_venta = %s
-                    LIMIT %s;
-                    """,
-                    values,
-                )
-                for i in ids:
-                    id_vehiculo = i["id"]
-                    DBController.execute(
-                        """
-                        INSERT INTO ventas (id_cliente, id_vehiculo) 
-                        VALUES (LAST_INSERT_ID(), %s); 
-                        """,
-                        (id_vehiculo,),
-                    )
-                # DBController.insert("ventas", )
-            return selecteds
+            DBMapper.exec("registra cliente y compra de vehiculos", request.form)
         client_view: ViewConfig = CrudEntityStore.getView(
             IngresoClienteViewCfg.entity_name
         )
-        table_data = DBController.query(
-            """
-                SELECT 
-                    vh.marca, 
-                    vh.modelo, 
-                    vh.color, 
-                    vh.precio_de_venta, 
-                    COUNT(vh.id) AS cantidad_disponible
-                FROM vehiculo vh
-                LEFT JOIN ventas vt ON vh.id = vt.id_vehiculo
-                WHERE vt.id_vehiculo IS NULL
-                GROUP BY vh.marca, vh.modelo, vh.color, vh.precio_de_venta;
-        """,
-            None,
-        )
+        table_data = DBMapper.getSimple("vehiculos a la venta")
         return MenuBase.render(
             "macros/template_factory.html",
             main_title="Ingreso de clientes",

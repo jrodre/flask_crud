@@ -1,13 +1,5 @@
-from flask import Flask, Blueprint, render_template
+from flask import render_template
 
-class Route:
-    url_prefix = ""
-    blueprint: Blueprint = None
-
-    @classmethod
-    def to(cls, app: Flask):
-        if cls.blueprint:
-            app.register_blueprint(cls.blueprint, url_prefix=cls.url_prefix)
 
 class MenuBase:
     title = "Menu"

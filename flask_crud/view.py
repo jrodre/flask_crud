@@ -210,7 +210,15 @@ def requiredsEquals(sample_dict, form_dict, requireds=None):
 
 
 class FormView:
-
+    """
+        Ejemplo de uso:
+        .. code-block:: python
+            userform = FormView(
+                model = Usuario(request.form),
+                requireds = ["id", "username", "password"],
+                enums = { "estado_civil": ["SOLTERO", "VIUDO", "CASADO", "CONCUBINATO"] }
+            )
+    """
     # Eventos de carga de datos en endpoint
     _endpoint_change_listeners = []
     vals_default_forms = None
@@ -229,15 +237,6 @@ class FormView:
         title=None,
         btns={},
     ):
-        """
-        Ejemplo de uso:
-        .. code-block:: python
-            userform = Form(
-                model = Usuario(request.form),
-                requireds = ["id", "username", "password"],
-                enums = { "estado_civil": ["SOLTERO", "VIUDO", "CASADO", "CONCUBINATO"] }
-            )
-        """
         self.entity_name = entity_name
         self.enumsmuliple = enumsmuliple
         self.sample = sample

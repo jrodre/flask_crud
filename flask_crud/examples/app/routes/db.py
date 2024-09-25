@@ -1,6 +1,6 @@
 from flask import Blueprint, request
-from app.dbutil import DBController
-from app.routes.base import Route
+from flask_crud.dbutil import DBController
+from flask_crud.routeutil import Route
 
 class DBRoute(Route):
     url_prefix = "/db"
