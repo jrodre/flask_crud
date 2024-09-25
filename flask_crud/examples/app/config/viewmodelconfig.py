@@ -1,4 +1,4 @@
-from flask_crud.view import Btn
+from flask_crud.view import Btn, Opt
 
 main_btn = Btn(
     # "Guardar",
@@ -17,4 +17,18 @@ cancel_btn = Btn(
     "Cancelar",
     htmlclass="btn btn-secondary",
     endpoint_name="index.dashboard",
+)
+
+# Para las tablas 
+EditOpt = Opt(
+    name_action= "Editar",
+    isGetId= True,
+    endpoint_name="edit",
+    htmlclass="btn btn-warning btn-sm"
+)
+DeleteOpt = Opt(
+    name_action= "Eliminar",
+    isPostId= True,
+    endpoint_name="delete",
+    htmlclass="btn btn-danger btn-sm"
 )

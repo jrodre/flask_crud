@@ -13,7 +13,6 @@ from app.viewmodels import (
     VehiculoCompradoViewCfg,
 )
 
-
 class IngresoRoute(Route):
     url_prefix = "/ingreso"
     blueprint = Blueprint("ingreso", __name__)

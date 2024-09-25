@@ -7,6 +7,19 @@
 --     stock INT NOT NULL,
 --     INDEX indx_id_producto_tipo_producto(id_producto, tipo_producto)
 -- )
+
+CREATE TABLE usuarios(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(25),
+    estado_usuario VARCHAR(10),
+    username VARCHAR(25),
+    password VARCHAR(25),
+    email VARCHAR(25),
+    telefono CHAR(10)    
+);
+
+SELECT * usuarios u WHERE u.id =
+
 CREATE TABLE vehiculo(
     id INT AUTO_INCREMENT PRIMARY KEY,
     matricula VARCHAR(10) UNIQUE, 
@@ -28,7 +41,6 @@ CREATE TABLE clientes(
     estado VARCHAR(30)
 );
 
--- SELECCIONAR NO COMPRADOS
 SELECT vh.* 
 FROM vehiculo vh
 LEFT JOIN ventas vt ON vh.id = vt.id_vehiculo

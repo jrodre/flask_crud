@@ -7,7 +7,7 @@ def read_requirements():
 
 setup(
     name='flaski',
-    version='0.0.0.7',
+    version='0.0.0.8',
     packages=['flask_crud'],
     # packages=find_packages(),
     include_package_data=True,  # Incluye archivos de templates y estáticos

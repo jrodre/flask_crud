@@ -1,55 +1,12 @@
 from flask import render_template
+from flask_login import current_user
 
+def getMenu():
+    return current_user.permissions.get("menu") if current_user and current_user.permissions and current_user.permissions.get("menu") else []
 
 class MenuBase:
     title = "Menu"
-    menu_opts = [
-        {
-            "text": "Ingreso",
-            "childs":[
-                {
-                "text": "Vehículo",
-                "endpoint":"ingreso.vehiculo",
-                },
-                {
-                "text": "Clientes",
-                "endpoint":"ingreso.cliente",
-                },
-                {
-                "text": "Revisiones",
-                "endpoint":"ingreso.revision",
-                },
-                {
-                "text": "Regresar",
-                "endpoint":"index.dashboard",
-                },
-            ]
-        },
-        {
-            "text": "Informe",
-            "childs":[
-                {
-                "text": "Clientes",
-                "endpoint":"informe.cliente"
-                },
-                {
-                "text": "Mantenimiento",
-                "endpoint":"informe.revision"
-                },
-                {
-                "text": "Regresar",
-                "endpoint":"index.dashboard",
-                },
-            ]
-        },
-        {
-        "text": "Eliminación",
-        "endpoint":"eliminacion.eliminar",
-        },
-        {
-        "text": "Salir",
-        },
-    ]
+    menu_opts = getMenu()
 
     @classmethod
     def renderFromFactory(cls, main_title, comps_data):        
@@ -62,6 +19,6 @@ class MenuBase:
     def render(cls, template_name_or_list: str| list[str], **context):        
         menu_data = {
             "title": cls.title,
-            "opts": cls.menu_opts,
+            "opts": getMenu(),
         }
         return render_template(template_name_or_list, menu_data=menu_data, **context)

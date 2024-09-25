@@ -50,14 +50,14 @@
         {% if main_btn and main_btn.isSubmit %}
         <button type="submit" class="{{main_btn.class}}">{{ main_btn.name_action }}</button>
         {% endif %}
-        {% if cancel_btn %}
+        {% if cancel_btn and cancel_btn.endpoint_name %}        
         <a type="button" href="{{ url_for(cancel_btn.endpoint_name) }}" class="{{cancel_btn.class}}">{{ cancel_btn.name_action }}</a>
         {% endif %}
         {% for btn in form_data.btns %}
-                {% if btn.isSimple %}
+                {% if btn and btn.isSimple and btn.endpoint_name %}
                 <a href="{{ url_for(btn.endpoint_name)}}" class="{{btn.class}}">{{btn.name_action}}</a>
                 {% endif %}
-                {% if btn.isSubmit %}
+                {% if btn and btn.isSubmit %}
                 <button type="submit" class="{{btn.class}}">{{ btn.name_action }}</button>
                 {% endif %}
         {% endfor %}
